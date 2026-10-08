@@ -13,7 +13,7 @@
 
 ## 📺 Video de Demostración
 
-> **[Ver demostración en YouTube →](https://youtu.be/p6P9Ry5njmM)**
+> **[Ver demostración en YouTube →](https://youtu.be/ENLACE_DEL_VIDEO)**
 
 ---
 
@@ -26,7 +26,7 @@
 5. [Documentación de la Red](#️-documentación-de-la-red)
 6. [Funcionamiento de la Configuración](#-funcionamiento-de-la-configuración)
 7. [Validación de la Implementación](#-validación-de-la-implementación)
-8. [Scripts de configuración](#-scripts-de-configuración)
+8. [Scripts](#-scripts)
 9. [Estructura del Repositorio](#-estructura-del-repositorio)
 
 ---
@@ -292,7 +292,9 @@ Políticas de firewall:
 
 ---
 
-## 📜 Scripts de configuración
+## 📜 Scripts
+
+### Scripts de configuración
 
 Los equipos de red se configuraron por consola con los comandos de abajo; las configuraciones finales completas están en `running-configs/`.
 
@@ -396,6 +398,33 @@ write memory
 
 > Las contraseñas, claves y hashes no se incluyen en este repositorio.
 
+### Scripts de prueba
+
+La carpeta [`scripts/`](scripts/) contiene scripts en Bash que automatizan las pruebas de seguridad de la validación. Cada uno imprime `[PASS]` cuando el resultado coincide con lo esperado por las políticas y `[FAIL]` cuando no.
+
+| Script | Dónde se ejecuta | Qué comprueba |
+| --- | --- | --- |
+| [`01-test-dmz.sh`](scripts/01-test-dmz.sh) | Cualquier servidor de la DMZ | Gateway de la DMZ; sin acceso a las VLAN de usuarios ni a Internet abierto; DNS y repositorio de Ubuntu permitidos; `example.com` bloqueado |
+| [`02-test-usuario.sh`](scripts/02-test-usuario.sh) `10\|20` | `vlan10-usuario` o `vlan20-usuario` | IP por DHCP y gateway; SSH a los servidores (solo VLAN 20); página de bloqueo del inventario (VLAN 10); base de datos inaccesible desde los usuarios |
+| [`03-check-servicios.sh`](scripts/03-check-servicios.sh) | Caja, inventario o datos | Servicios instalados y activos (SSH, web, base de datos) y puertos TCP en escucha |
+| [`04-test-db.sh`](scripts/04-test-db.sh) | Caja o inventario | Conectividad hacia la base de datos del servidor de datos (MySQL/MariaDB o PostgreSQL) y consulta de prueba opcional |
+
+**Uso:**
+
+```bash
+# En un servidor de la DMZ
+bash 01-test-dmz.sh
+bash 03-check-servicios.sh
+bash 04-test-db.sh            # desde caja o inventario
+
+# En los usuarios
+bash 02-test-usuario.sh 10    # en vlan10-usuario
+bash 02-test-usuario.sh 20    # en vlan20-usuario
+```
+
+- En `01-test-dmz.sh`, edita `USER_VLAN10` y `USER_VLAN20` con las IP que los usuarios recibieron por DHCP.
+- `04-test-db.sh` acepta una consulta de prueba con `export DB_USER=... DB_PASS=...`; las credenciales no se guardan en el repositorio.
+
 ---
 
 ## 📁 Estructura del Repositorio
@@ -430,4 +459,10 @@ running-configs/
 ├── switch-2241-1.txt
 ├── switch-2241-2.txt
 └── FortiGate.conf
+
+scripts/
+├── 01-test-dmz.sh
+├── 02-test-usuario.sh
+├── 03-check-servicios.sh
+└── 04-test-db.sh
 ```
